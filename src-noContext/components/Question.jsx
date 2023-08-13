@@ -1,11 +1,7 @@
-import { useQuiz } from "../context/QuizContext";
 import Options from "./Options";
 
 /* eslint-disable react/prop-types */
-function Question() {
-  const { state, dispatch } = useQuiz();
-  const { questions, answer, index } = state;
-  const question = questions[index];
+function Question({ question, dispatch, answer }) {
   // {
   //     "question": "An effect will always run on the initial render.",
   //     "options": [

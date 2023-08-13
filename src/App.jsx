@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect } from "react";
 import "./index.css";
 import Header from "./components/Header";
 import Container from "./components/Container";
@@ -10,108 +10,31 @@ import Progress from "./components/Progress";
 import StartScreen from "./components/StartScreen";
 import FinishScreen from "./components/FinishScreen";
 import Timer from "./components/Timer";
-
-const SECOND_PER_QUESTIONS = 30;
-const initalState = {
-  questions: [],
-  status: "loading",
-  index: 0,
-  answer: null,
-  points: 0,
-  highScore: 0,
-  secondRemaining: null,
-};
-
-function reducer(prevState, action) {
-  const currentQuestion = prevState.questions.at(prevState.index);
-
-  switch (action.type) {
-    case "dataReceived":
-      return { ...prevState, questions: action.payload, status: "ready" };
-
-    case "dataFailed":
-      return { ...prevState, status: "error" };
-
-    case "start":
-      return {
-        ...prevState,
-        status: "active",
-        secondRemaining: prevState.questions.length * SECOND_PER_QUESTIONS,
-      };
-
-    case "newAnswer":
-      return {
-        ...prevState,
-        answer: action.payload,
-        points:
-          action.payload === currentQuestion.correctOption
-            ? prevState.points + currentQuestion.points
-            : prevState.points,
-      };
-    case "nextQuestion":
-      return { ...prevState, index: prevState.index + 1, answer: null };
-
-    case "finish":
-      return {
-        ...prevState,
-        status: "finished",
-        highScore:
-          prevState.points > prevState.highScore
-            ? prevState.points
-            : prevState.highScore,
-      };
-
-    case "restart":
-      return {
-        ...prevState,
-        status: "active",
-        index: 0,
-        answer: null,
-        points: 0,
-        secondRemaining: prevState.questions.length * SECOND_PER_QUESTIONS,
-      };
-
-    case "tick":
-      return {
-        ...prevState,
-        secondRemaining: prevState.secondRemaining - 1,
-        status: prevState.secondRemaining === 0 ? "finished" : prevState.status,
-        highScore:
-          prevState.points > prevState.highScore
-            ? prevState.points
-            : prevState.highScore,
-      };
-    default:
-      throw new Error("Unknown action");
-  }
-}
+import { useQuiz } from "./context/QuizContext";
 
 function App() {
-  const [
-    { questions, status, index, answer, points, highScore, secondRemaining },
-    dispatch,
-  ] = useReducer(reducer, initalState);
+  const { state, dispatch } = useQuiz();
+  const { status } = state;
+  // questions
+  //
+  // const maxPossiblePoints = questions.reduce((prev, current) => {
+  //   return prev + current.points;
+  // }, 0);
 
-  const numOfQuestions = questions.length;
-  const maxPossiblePoints = questions.reduce((prev, current) => {
-    return prev + current.points;
-  }, 0);
-
-  useEffect(function () {
-    fetch("http://localhost:9000/questions")
-      .then((response) => response.json())
-      .then((data) => {
-        dispatch({ type: "dataReceived", payload: data });
-      })
-      .catch((e) => {
-        console.error(e);
-        dispatch({ type: "dataFailed" });
-      });
-  }, []);
-
-  function onStart() {
-    dispatch({ type: "start" });
-  }
+  useEffect(
+    function () {
+      fetch("http://localhost:9000/questions")
+        .then((response) => response.json())
+        .then((data) => {
+          dispatch({ type: "dataReceived", payload: data });
+        })
+        .catch((e) => {
+          console.error(e);
+          dispatch({ type: "dataFailed" });
+        });
+    },
+    [dispatch]
+  );
 
   return (
     <div className="app">
@@ -119,40 +42,16 @@ function App() {
       <Container>
         {status === "loading" && <Loader />}
         {status === "error" && <Error />}
-        {status === "ready" && (
-          <StartScreen numOfQuestions={numOfQuestions} onStart={onStart} />
-        )}
+        {status === "ready" && <StartScreen />}
         {status === "active" && (
           <>
-            <Progress
-              index={index}
-              numOfQuestions={numOfQuestions}
-              points={points}
-              maxPossiblePoints={maxPossiblePoints}
-              answer={answer}
-            />
-            <Question
-              question={questions[index]}
-              dispatch={dispatch}
-              answer={answer}
-            />
-            <Timer dispatch={dispatch} secondRemaining={secondRemaining} />
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              index={index}
-              maxPossibleQuestions={numOfQuestions}
-            />
+            <Progress />
+            <Question />
+            <Timer />
+            <NextButton />
           </>
         )}
-        {status === "finished" && (
-          <FinishScreen
-            points={points}
-            maxPossiblePoints={maxPossiblePoints}
-            highScore={highScore}
-            dispatch={dispatch}
-          />
-        )}
+        {status === "finished" && <FinishScreen />}
       </Container>
     </div>
   );

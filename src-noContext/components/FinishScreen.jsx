@@ -1,12 +1,5 @@
-import { useQuiz } from "../context/QuizContext";
-
 /* eslint-disable react/prop-types */
-function FinishScreen() {
-  const { state, dispatch } = useQuiz();
-  const { points, questions, highScore } = state;
-  const maxPossiblePoints = questions.reduce((prev, current) => {
-    return prev + current.points;
-  }, 0);
+function FinishScreen({ points, maxPossiblePoints, highScore, dispatch }) {
   const percentage = (points / maxPossiblePoints) * 100;
   let emoji;
   if (percentage === 100) emoji = "🥇";

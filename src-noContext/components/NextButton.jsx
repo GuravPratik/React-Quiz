@@ -1,11 +1,5 @@
-import { useQuiz } from "../context/QuizContext";
-
 /* eslint-disable react/prop-types */
-function NextButton() {
-  const { dispatch, state } = useQuiz();
-  const { answer, questions, index } = state;
-  const maxPossibleQuestions = questions.length;
-
+function NextButton({ dispatch, answer, index, maxPossibleQuestions }) {
   if (answer === null) return null;
 
   if (index < maxPossibleQuestions - 1) {

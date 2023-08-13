@@ -1,12 +1,8 @@
 /* eslint-disable react/prop-types */
 
 import { useEffect } from "react";
-import { useQuiz } from "../context/QuizContext";
 
-function Timer() {
-  const { dispatch, state } = useQuiz();
-  const { secondRemaining } = state;
-
+function Timer({ dispatch, secondRemaining }) {
   const mins = Math.floor(secondRemaining / 60);
   const seconds = secondRemaining % 60;
 
